@@ -31,29 +31,7 @@ const CHART_TOOLTIP_STYLE = {
 const GRID_COLOR = "oklch(0.88 0.006 240)";
 const TICK_COLOR = "oklch(0.48 0.01 240)";
 
-type Preset = "today" | "yesterday" | "7d" | "14d" | "30d" | "custom";
 
-const PRESETS: { id: Preset; label: string }[] = [
-  { id: "today", label: "Имрӯз" },
-  { id: "yesterday", label: "Дирӯз" },
-  { id: "7d", label: "7 рӯз" },
-  { id: "14d", label: "14 рӯз" },
-  { id: "30d", label: "30 рӯз" },
-  { id: "custom", label: "Дилхоҳ" },
-];
-
-function getPresetRange(p: Preset): { from: string; to: string } {
-  const today = format(new Date(), "yyyy-MM-dd");
-  if (p === "today") return { from: today, to: today };
-  if (p === "yesterday") {
-    const y = format(subDays(new Date(), 1), "yyyy-MM-dd");
-    return { from: y, to: y };
-  }
-  if (p === "7d") return { from: format(subDays(new Date(), 6), "yyyy-MM-dd"), to: today };
-  if (p === "14d") return { from: format(subDays(new Date(), 13), "yyyy-MM-dd"), to: today };
-  if (p === "30d") return { from: format(subDays(new Date(), 29), "yyyy-MM-dd"), to: today };
-  return { from: today, to: today };
-}
 
 function StatCard({ title, value, icon: Icon, subtitle }: {
   title: string; value: string | number; icon: React.ElementType; subtitle?: string;
@@ -82,13 +60,35 @@ export default function AnalyticsPage() {
   const messageStats = useQuery(api.messages.getMessageStats, {});
   const todayLeads = useQuery(api.chats.getTodayLeadsCount, {});
 
-  const [preset, setPreset] = useState<Preset>("today");
-  const [customFrom, setCustomFrom] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [customTo, setCustomTo] = useState(format(new Date(), "yyyy-MM-dd"));
+  const todayStr = format(new Date(), "yyyy-MM-dd");
+  const [fromDate, setFromDate] = useState(todayStr);
+  const [toDate, setToDate] = useState(todayStr);
+  const [activePreset, setActivePreset] = useState<string>("today");
 
-  const { from, to } = preset === "custom"
-    ? { from: customFrom, to: customTo }
-    : getPresetRange(preset);
+  const applyPreset = (id: string) => {
+    setActivePreset(id);
+    const today = new Date();
+    const tStr = format(today, "yyyy-MM-dd");
+    if (id === "today") {
+      setFromDate(tStr);
+      setToDate(tStr);
+    } else if (id === "yesterday") {
+      const yStr = format(subDays(today, 1), "yyyy-MM-dd");
+      setFromDate(yStr);
+      setToDate(yStr);
+    } else if (id === "7d") {
+      setFromDate(format(subDays(today, 6), "yyyy-MM-dd"));
+      setToDate(tStr);
+    } else if (id === "14d") {
+      setFromDate(format(subDays(today, 13), "yyyy-MM-dd"));
+      setToDate(tStr);
+    } else if (id === "30d") {
+      setFromDate(format(subDays(today, 29), "yyyy-MM-dd"));
+      setToDate(tStr);
+    }
+  };
+
+  const { from, to } = { from: fromDate, to: toDate };
 
   const dateRange = useMemo(() => {
     try {
@@ -156,38 +156,62 @@ export default function AnalyticsPage() {
           <p className="text-sm text-muted-foreground mt-1">Умумии фаъолияти CRM</p>
         </div>
 
-        {/* Date filter */}
+        {/* Date range picker */}
         <Card className="bg-card border-border">
-          <CardContent className="pt-4 pb-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
-              {PRESETS.map((p) => (
-                <Button
-                  key={p.id}
-                  size="sm"
-                  variant={preset === p.id ? "default" : "secondary"}
-                  onClick={() => setPreset(p.id)}
-                  className="h-8 text-xs"
-                >
-                  {p.label}
-                </Button>
-              ))}
-              {preset === "custom" && (
-                <div className="flex items-center gap-2 ml-2">
-                  <Input
-                    type="date"
-                    value={customFrom}
-                    onChange={(e) => setCustomFrom(e.target.value)}
-                    className="h-8 w-36 text-xs bg-input border-border"
-                  />
-                  <span className="text-xs text-muted-foreground">—</span>
-                  <Input
-                    type="date"
-                    value={customTo}
-                    onChange={(e) => setCustomTo(e.target.value)}
-                    className="h-8 w-36 text-xs bg-input border-border"
-                  />
-                </div>
+          <CardContent className="pt-4 pb-4 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-primary shrink-0" />
+                <span className="text-sm font-semibold text-foreground">Давраи ҳисобот</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {[
+                  { id: "today", label: "Имрӯз" },
+                  { id: "yesterday", label: "Дирӯз" },
+                  { id: "7d", label: "7 рӯз" },
+                  { id: "14d", label: "14 рӯз" },
+                  { id: "30d", label: "30 рӯз" },
+                ].map((p) => (
+                  <Button
+                    key={p.id}
+                    size="sm"
+                    variant={activePreset === p.id ? "default" : "secondary"}
+                    onClick={() => applyPreset(p.id)}
+                    className="h-7 text-xs px-2.5"
+                  >
+                    {p.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-border">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-muted-foreground">Аз:</span>
+                <Input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => {
+                    setFromDate(e.target.value);
+                    setActivePreset("custom");
+                  }}
+                  className="h-8 w-36 text-xs bg-input border-border"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-muted-foreground">То:</span>
+                <Input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => {
+                    setToDate(e.target.value);
+                    setActivePreset("custom");
+                  }}
+                  className="h-8 w-36 text-xs bg-input border-border"
+                />
+              </div>
+              {activePreset === "custom" && (
+                <span className="text-xs text-primary font-medium ml-auto">Интихоби фармоишӣ</span>
               )}
             </div>
           </CardContent>

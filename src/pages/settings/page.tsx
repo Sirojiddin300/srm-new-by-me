@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api.js";
 import { useForm } from "react-hook-form";
@@ -49,11 +49,20 @@ export default function SettingsPage() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    values: {
-      instanceId: settings?.instanceId ?? "",
-      apiToken: settings?.apiToken ?? "",
+    defaultValues: {
+      instanceId: "",
+      apiToken: "",
     },
   });
+
+  useEffect(() => {
+    if (settings) {
+      form.reset({
+        instanceId: settings.instanceId ?? "",
+        apiToken: settings.apiToken ?? "",
+      });
+    }
+  }, [settings, form]);
 
   const onSubmit = async (values: FormValues) => {
     try {
