@@ -21,21 +21,21 @@ export default function BroadcastPage() {
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ sent: number; failed: number } | null>(null);
 
-  const filtered = (chats ?? []).filter((c) =>
+  const filtered = (chats ?? []).filter((c: any) =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.chatId.toLowerCase().includes(search.toLowerCase())
   );
 
-  const allSelected = filtered.length > 0 && filtered.every((c) => selected.has(c.chatId));
+  const allSelected = filtered.length > 0 && filtered.every((c: any) => selected.has(c.chatId));
 
   const toggleAll = () => {
     if (allSelected) {
       const next = new Set(selected);
-      filtered.forEach((c) => next.delete(c.chatId));
+      filtered.forEach((c: any) => next.delete(c.chatId));
       setSelected(next);
     } else {
       const next = new Set(selected);
-      filtered.forEach((c) => next.add(c.chatId));
+      filtered.forEach((c: any) => next.add(c.chatId));
       setSelected(next);
     }
   };
@@ -180,7 +180,7 @@ export default function BroadcastPage() {
               <p className="text-sm text-muted-foreground text-center py-6">Чатҳо ёфт нашуданд</p>
             ) : (
               <div className="space-y-1 max-h-80 overflow-y-auto pr-1">
-                {filtered.map((chat) => (
+                {filtered.map((chat: any) => (
                   <label
                     key={chat.chatId}
                     className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"

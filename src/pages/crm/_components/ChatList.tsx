@@ -134,7 +134,7 @@ export default function ChatList({ selectedChatId, onSelectChat }: Props) {
             </p>
           </div>
         ) : (
-          chats.map((chat) => (
+          chats.map((chat: any) => (
             <ChatItem
               key={chat._id}
               chat={chat}

@@ -506,7 +506,7 @@ export default function ChatWindow({ chatId, chat }: Props) {
             <p className="text-sm text-muted-foreground">Паёмҳо нестанд.</p>
           </div>
         ) : (
-          messages.map((msg) => <MessageBubble key={msg._id} msg={msg} />)
+          messages.map((msg: any) => <MessageBubble key={msg._id} msg={msg} />)
         )}
 
         {/* Typing indicator bubble */}

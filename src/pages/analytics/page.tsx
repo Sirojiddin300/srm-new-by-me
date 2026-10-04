@@ -137,9 +137,9 @@ export default function AnalyticsPage() {
   const periodMsgSent = dateRange.reduce((s, d) => s + (messageStats[d]?.sent ?? 0), 0);
   const periodMsgReceived = dateRange.reduce((s, d) => s + (messageStats[d]?.received ?? 0), 0);
 
-  const totalMessages = Object.values(messageStats).reduce((acc, d) => acc + d.sent + d.received, 0);
+  const totalMessages = Object.values(messageStats as Record<string, { sent: number; received: number }>).reduce((acc, d) => acc + d.sent + d.received, 0);
 
-  const groups = chats.filter((c) => c.isGroup).length;
+  const groups = chats.filter((c: any) => c.isGroup).length;
   const individuals = chats.length - groups;
   const pieData = [
     { name: "Якка", value: individuals },
